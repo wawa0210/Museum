@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>湖南省博物馆后台管理系统</title>
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/css/plugins/steps/jquery.steps.css" rel="stylesheet">
+    <link href="/css/animate.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        .wizard > .content > .body { position: relative; }
+        .sel_Disable{
+        }
+    </style>
+
+</head>
+
+<body style="background-color: #fdfeff;">
+    <div id="wrapper">
+        <div>
+           <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5 id="h_title">馆藏分类编辑</small></h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                                <a class="close-link">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <form class="form-horizontal" id="form_antiquesClassInfo">
+                                        <div class="form-group"><label class="col-sm-3 control-label">分类名称</label>
+                                            <div class="col-sm-8"><input type="text" id="ip_className" name="className" onblur="CheckAntiquesCalssExists()" class="form-control" required></div>
+                                        </div>
+                                         <div class="form-group"><label class="col-sm-3 control-label">排序</label>
+                                          <div class="col-sm-8"><input type="number" id="ip_hotLevel" placeholder="数字越大显示约靠前" class="form-control"></div>
+                                        </div>
+                                        <div class="form-group"><label class="col-sm-3 control-label">是否启用</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control m-b" id="sel_IsEnable">
+                                                  <option value="1" selected="selected">启用</option>
+                                                  <option value="-1">禁用</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group"><label class="col-sm-3 control-label">分类介绍</label>
+                                          <div class="col-sm-8"> <textarea id="ip_description"  name="description" class="form-control" required ></textarea></div>
+                                        </div>
+                                        <div class="form-group"><label class="col-sm-3 control-label">备注</label>
+                                          <div class="col-sm-8"><textarea id="ip_remark" class="form-control" ></textarea></div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                                    </form>
+                                    <div class="col-sm-4 col-sm-offset-2">
+                                        <button class="btn btn-default" id="btn_Cancel" onclick="Cancel()">取消</button>
+                                        <button onclick="SaveAntiquesCalss()"  class="btn btn-primary" id="btn_Save">保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <input type="hidden"  id="hid_actionType" value="0" />
+    <input type="hidden"  id="hid_antiquesId" value="0" />
+    <!-- Mainly scripts -->
+    <script src="/js/jquery-2.1.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="/js/inspinia.js"></script>
+    <script src="/js/plugins/pace/pace.min.js"></script>
+
+    <!-- Steps -->
+    <script src="/js/plugins/staps/jquery.steps.min.js"></script>
+
+    <!-- Jquery Validate -->
+    <script src="/js/plugins/validate/jquery.validate.min.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+    <!-- Jquery Validate -->
+    <script src="/js/plugins/validate/jquery.validate.min.js"></script>
+
+    <script>
+
+        var validator;
+
+        $(document).ready(function(){
+            //判断新增or编辑
+            var actionType=getUrlParam("actionType");
+            if(actionType=="add"){
+                $("#hid_actionType").val("0");
+            }
+            else{
+                var classId = getUrlParam("id");
+                if(classId!=null && classId!="")
+                {
+                    LoadAntiquesClass(classId);
+                }
+                $("#hid_antiquesId").val(classId);
+                $("#hid_actionType").val("1");
+            }
+       });
+
+        function Cancel(){
+            $("#iframe_DashBoard",parent.document).attr('src',"/Static/AntiquesClassList.html");
+        }
+
+        function SaveAntiquesCalss(){
+            var formInfo = $("#form_antiquesClassInfo");
+            formInfo.validate().settings.ignore = ":disabled,:hidden";
+            if(!formInfo.valid()){
+                validator.focusInvalid();
+                return false;
+            }
+
+            var antiquesClass ={};
+                antiquesClass.id = $("#hid_antiquesId").val();
+                antiquesClass.title = $("#ip_className").val();
+                antiquesClass.description =$("#ip_description").val();
+                antiquesClass.isEnable = $("#sel_IsEnable").val()=="1"?true:false;
+                antiquesClass.remark = $("#ip_remark").val();
+                antiquesClass.hotLevel = $("#ip_hotLevel").val();
+
+                EditAntiquesClassInfo(antiquesClass,function(result){
+                   if(result.code=="0"){
+                      alert("保存成功");
+                      Cancel();
+                   }
+                   else{
+                    alert("保存失败");
+                   }
+                });
+        }
+
+        function EditAntiquesClassInfo(params,callback){
+            var uri = '/antiquesclass';
+            params = JSON.stringify(params);
+            if($("#hid_actionType").val()=="0"){
+                doPost(uri,params,function(res){
+                   if (callback) {
+                          callback(res);
+                      }
+                },"json");
+            }
+            else{
+                //编辑
+                doPut(uri,params,function(res){
+                   if (callback) {
+                          callback(res);
+                      }
+                },"json");
+            }
+        }
+
+        //加载管理员信息
+        function LoadAntiquesClass(id){
+            GetAntiquesClass(id,function(result){
+                if(result.code=="0"){
+                    var antiquesclass = result.data;
+                     $("#ip_className").val(antiquesclass.title);
+                     $("#ip_description").val(antiquesclass.description);
+                     $("#ip_remark").val(antiquesclass.remark);
+                     $("#ip_hotLevel").val(antiquesclass.hotLevel);
+                     $("#ip_realName").val(antiquesclass.realName);
+                     $("#sel_IsEnable").val(antiquesclass.isEnable?"1":"-1");
+                }
+            });
+        }
+
+        function GetManagerByName(userName,callback){
+            var uri = '/accounts/query?userName='+userName;
+            doGet(uri,function(res){
+                if (callback) {
+                    callback(res);
+                }
+            });
+        }
+
+        //校验用户名是否存在
+        function CheckManagerNameExists(){
+            var userName =$("#ip_userName").val();
+            if(userName!="")
+            {
+                GetManagerByName(userName,function(result){
+                    if(result.code==0){
+                        if(result.data!=null){
+                            return false;
+                        }
+                        else{
+                            return true;
+                        }
+                    }
+                })
+            }
+        }
+
+        function GetAntiquesClass(id,callback){
+            var uri = '/antiquesclass/'+id;
+            doGet(uri,function(res){
+                if (callback) {
+                    callback(res);
+                }
+            });
+        }
+
+        function RediectManagerList(){
+            $("#iframe_DashBoard",parent.document).attr('src',"/Static/ManagerList.html");
+        }
+
+        $(function(){
+             //关闭按钮
+            $(".close-link").click(function(){
+                RediectManagerList();
+            })
+
+            validator = $("#form_antiquesClassInfo").validate({  
+                rules: {  
+                    className: { required: true},
+                    description :{ required: true}
+                },  
+                messages: {  
+                    className: {  
+                        required: "分类名称不能为空"
+                    } ,
+                    description: {  
+                        required: "分类介绍不能为空不能为空"
+                    } 
+                }  
+            });  
+        })
+    </script>
+
+</body>
+
+</html>
