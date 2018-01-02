@@ -174,7 +174,7 @@
         });
 
         function GetEditButtonStr(id,name){
-            return '<div class="btn-group"><button class="btn-white btn btn-xs" onclick="EditAntiquesClass(\''+id+'\')">编辑</button><button class="btn-danger btn btn-xs" onclick="DisableAntiquesClass(\''+id+'\')">禁用</button></div>';
+            return '<div class="btn-group"><button class="btn-white btn btn-xs" onclick="EditAntiquesClass(\''+id+'\')">编辑</button><button class="btn-primary btn btn-xs" onclick="ManageAntiquesMinClass(\''+id+'\')">对应小分类管理</button><button class="btn-danger btn btn-xs" data-toggle="modal" data-target="#myModal6" onclick="DisableAntiquesClass(\''+id+'\')">删除</button></div>';
         }
 
 	    function GetPageAntiquesClassInfo(param,callback){
@@ -191,6 +191,36 @@
         }
         function EditAntiquesClass(id){
             $("#iframe_DashBoard",parent.document).attr('src',"/Static/AntiquesClassEdit.html?actionType=edit&id="+id);
+        }
+        function DisableAntiquesClass(id){
+        	var dialog = art.dialog({
+                title: '删除大分类信息',
+                content: '删除大分类信息，同时将删除小分类，及其下边所有文物信息,请慎重',
+                lock:true,
+                ok: function(){
+                    DeleteAntiquesClassInfo(id,function(result){
+                        if(result.code=="0"){
+                        	alert('删除成功')
+                        }
+                        else{
+                        	alert("删除失败！")
+                        }
+                        $("#iframe_DashBoard",parent.document).attr('src',"/Static/AntiquesClassList.html");
+                    })
+                },
+                cancel:function(){
+                   $("#iframe_DashBoard",parent.document).attr('src',"/Static/AntiquesClassList.html");
+                }
+            });
+        }
+         function DeleteAntiquesClassInfo(id,callback){
+            var uri = '/antiquesclass/delete/'+id;
+
+            doPost(uri,null,function(res){
+                if (callback) {
+                    callback(res);
+                }
+            },"json");
         }
     </script>
 
