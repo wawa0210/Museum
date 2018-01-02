@@ -187,7 +187,14 @@
             	//列表表头字段
 	            columns: [
 	                { "data": "name" },
-	                { "data": "isEnable" },
+	                { 
+                        "data": null,
+                        "orderable": false,  
+                        "render": function ( data) {  
+                            return DisplayEnableStr(data.isEnable);  
+                        }  
+
+                    },
 	                { "data": "createTime" },
 	                { "data": "remark" },
 	                {  
@@ -202,6 +209,10 @@
 
             oTable.buttons().container().appendTo($('#editable_filter .col-sm-6:eq(0)'));
         });
+
+        function DisplayEnableStr(isEnable){
+            return isEnable==true?"<div class=\"btn-group\"><span class=\"label label-primary\">启用</span></div>":"<div class=\"btn-group\"><span class=\"label label-primary\">禁用</span></div>";
+        }
 
         function GetEditButtonStr(id,name){
             return '<div class="btn-group"><button class="btn-primary btn btn-xs" onclick="EditMuseumInfo(\'' + id +'\',\''+name+'\')" data-toggle="modal" data-target="#myModal6">编辑</button><button class="btn-danger btn btn-xs" onclick="DisableMuseumInfo(\''+id+'\')">禁用</button></div>';
